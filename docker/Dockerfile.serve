@@ -1,0 +1,57 @@
+# syntax=docker/dockerfile:1
+
+FROM python:3.14-slim AS builder
+
+WORKDIR /build
+
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+COPY requirements/serve.txt ./requirements.txt
+
+RUN python -m pip install --upgrade pip setuptools wheel \
+    && python -m pip wheel \
+       --only-binary=:all: \
+       --wheel-dir=/wheels \
+       -r requirements.txt
+
+
+FROM python:3.14-slim AS serving
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    MODEL_PATH=/app/checkpoints/classifier_v1.pt
+
+COPY --from=builder /wheels /wheels
+COPY requirements/serve.txt /tmp/requirements.txt
+
+RUN python -m pip install \
+       --no-index \
+       --find-links=/wheels \
+       -r /tmp/requirements.txt \
+    && rm -rf /wheels /tmp/requirements.txt
+
+COPY src/ ./src/
+
+RUN groupadd --system appgroup \
+    && useradd --system \
+       --gid appgroup \
+       --create-home \
+       appuser \
+    && mkdir -p /app/checkpoints \
+    && chown -R appuser:appgroup /app
+
+USER appuser
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=10s \
+    --timeout=3s \
+    --start-period=20s \
+    --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=2)" || exit 1
+
+CMD ["python", "-m", "uvicorn", "serve:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8080"]
