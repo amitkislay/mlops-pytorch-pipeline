@@ -203,11 +203,9 @@ docker version
 ### 1. Clone the repository
 
 ```powershell
-git clone https://github.com/YOUR_USERNAME/mlops-pytorch-pipeline.git
+git clone https://github.com/amitkislay/mlops-pytorch-pipeline.git
 Set-Location .\mlops-pytorch-pipeline
 ```
-
-Replace `YOUR_USERNAME` with the GitHub account that owns the repository.
 
 ### 2. Create the virtual environment
 
