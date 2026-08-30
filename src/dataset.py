@@ -10,6 +10,8 @@ from pathlib import Path
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
+CIFAR10_MEAN = (0.4914, 0.4822, 0.4465)
+CIFAR10_STD = (0.2470, 0.2435, 0.2616)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,8 +28,8 @@ def get_transforms(train: bool = True) -> transforms.Compose:
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=(0.4914, 0.4822, 0.4465),
-                    std=(0.2470, 0.2435, 0.2616),
+                    mean=CIFAR10_MEAN,
+                    std=CIFAR10_STD,
                 ),
             ]
         )
@@ -36,8 +38,8 @@ def get_transforms(train: bool = True) -> transforms.Compose:
         [
             transforms.ToTensor(),
             transforms.Normalize(
-                mean=(0.4914, 0.4822, 0.4465),
-                std=(0.2470, 0.2435, 0.2616),
+                mean=CIFAR10_MEAN,
+                std=CIFAR10_STD,
             ),
         ]
     )
